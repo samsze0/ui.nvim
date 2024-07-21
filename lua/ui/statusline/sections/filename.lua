@@ -5,7 +5,7 @@ local component_config = {
   hl_groups = {},
 }
 
-return Statusline.Component.new(function()
+return Statusline.Component.new(function(render_mode)
   if vim.bo.buftype == "terminal" then
     return " %t"
   else

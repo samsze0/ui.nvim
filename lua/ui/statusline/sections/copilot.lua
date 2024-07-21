@@ -9,7 +9,7 @@ local component_config = {
   },
 }
 
-return Statusline.Component.new(function()
+return Statusline.Component.new(function(render_mode)
   if (vim.bo.filetype == "") or not utils.is_normal_buftype() then return "" end
 
   ---@module 'copilot.client'
@@ -23,10 +23,15 @@ return Statusline.Component.new(function()
   then
     return utils.highlight_text(
       " ",
-      component_config.hl_groups.icon_inactive
+      component_config.hl_groups.icon_inactive,
+      render_mode
     )
   else
-    return utils.highlight_text(" ", component_config.hl_groups.icon_active)
+    return utils.highlight_text(
+      " ",
+      component_config.hl_groups.icon_active,
+      render_mode
+    )
   end
 
   -- return utils.highlight_text(" ", component_config.hl_groups.icon_inactive)

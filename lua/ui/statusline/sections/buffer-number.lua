@@ -6,5 +6,7 @@ local component_config = {
 }
 
 return Statusline.Component.new(
-  function() return "Buffer: " .. tostring(vim.api.nvim_get_current_buf()) end
+  function(render_mode)
+    return "Buffer: " .. tostring(vim.api.nvim_get_current_buf())
+  end
 )

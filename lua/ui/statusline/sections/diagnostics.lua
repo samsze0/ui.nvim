@@ -25,7 +25,7 @@ local component_config = {
 
 ---@type vim.lsp.get_clients.Filter
 
-return Statusline.Component.new(function()
+return Statusline.Component.new(function(render_mode)
   ---@type vim.lsp.get_clients.Filter
   local filter = { bufnr = 0 }
   local has_attached_client = next(vim.lsp.get_clients(filter)) ~= nil
@@ -49,7 +49,8 @@ return Statusline.Component.new(function()
         result,
         utils.highlight_text(
           ("%s%s"):format(level_config.sign, n),
-          level_config.hl_group
+          level_config.hl_group,
+          render_mode
         )
       )
     end

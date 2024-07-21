@@ -19,7 +19,7 @@ local RenderMode = {
   inactive = "inactive",
 }
 
----@alias Statusline.component.render_fn fun(): string
+---@alias Statusline.component.render_fn fun(mode: Statusline.render_mode): string
 
 ---@class Statusline.component
 ---@field _render_fn Statusline.component.render_fn
@@ -35,15 +35,20 @@ function StatuslineComponent.new(render_fn, opts)
   }
   setmetatable(obj, StatuslineComponent)
   ---@cast obj Statusline.component
-  obj._render_fn = function()
+  obj._render_fn = function(mode)
     if obj._critical_error then
       return config.component_fail_to_render_symbol
     end
 
-    local ok, output = xpcall(function() return render_fn() end, function(err)
-      _error("An error occurred while rendering statusline component: " .. err)
-      obj._critical_error = true
-    end)
+    local ok, output = xpcall(
+      function() return render_fn(mode) end,
+      function(err)
+        _error(
+          "An error occurred while rendering statusline component: " .. err
+        )
+        obj._critical_error = true
+      end
+    )
     if not ok then output = config.component_fail_to_render_symbol end
     ---@cast output -nil
 
@@ -53,8 +58,9 @@ function StatuslineComponent.new(render_fn, opts)
   return obj
 end
 
+---@param mode Statusline.render_mode
 ---@return string
-function StatuslineComponent:render() return self._render_fn() end
+function StatuslineComponent:render(mode) return self._render_fn(mode) end
 
 ---@enum Statusline.section
 local Section = {
@@ -115,7 +121,8 @@ end
 ---@param order number?
 function Statusline:add(section, component, order) error("Not implemented") end
 
-function Statusline:render()
+---@param mode Statusline.render_mode
+function Statusline:render(mode)
   if self._critical_error then return end
 
   local ok, output = xpcall(function()
@@ -124,7 +131,7 @@ function Statusline:render()
         tbl_utils.filter(
           tbl_utils.map(
             self._sections.left,
-            function(_, component) return component:render() end
+            function(_, component) return component:render(mode) end
           ),
           function(_, output) return output ~= nil and #output > 0 end
         ),
@@ -136,7 +143,7 @@ function Statusline:render()
         tbl_utils.filter(
           tbl_utils.map(
             self._sections.right,
-            function(_, component) return component:render() end
+            function(_, component) return component:render(mode) end
           ),
           function(_, output) return output ~= nil and #output > 0 end
         ),
@@ -186,5 +193,6 @@ function Statusline:on_render(callback)
 end
 
 Statusline.Component = StatuslineComponent
+Statusline.RenderMode = RenderMode
 
 return Statusline

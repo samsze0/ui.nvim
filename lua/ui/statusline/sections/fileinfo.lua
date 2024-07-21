@@ -8,7 +8,7 @@ local component_config = {
   padding = "  ",
 }
 
-return Statusline.Component.new(function()
+return Statusline.Component.new(function(render_mode)
   local filetype = vim.bo.filetype
 
   if (filetype == "") or not utils.is_normal_buftype() then return "" end
@@ -22,6 +22,7 @@ return Statusline.Component.new(function()
       encoding,
       format,
     }, component_config.padding),
-    component_config.hl_groups.fg
+    component_config.hl_groups.fg,
+    render_mode
   )
 end)

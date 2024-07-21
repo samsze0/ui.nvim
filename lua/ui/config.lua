@@ -7,8 +7,8 @@ local oop_utils = require("utils.oop")
 ---@field error fun(message: string)?
 
 ---@class StatuslineHighlightGroupsConfig
----@field bg string?
----@field fg string?
+---@field active string?
+---@field inactive string?
 
 ---@class StatuslineConfig
 ---@field highlight_groups StatuslineHighlightGroupsConfig?
@@ -22,6 +22,7 @@ local oop_utils = require("utils.oop")
 ---@field highlight_groups TablineHighlightGroupsConfig?
 ---@field padding string?
 ---@field margin string?
+---@field component_fail_to_render_symbol string?
 
 ---@class UIConfig.config
 ---@field statusline StatuslineConfig?
@@ -50,8 +51,8 @@ local default_config = {
     margin = " ",
     padding = "  ",
     highlight_groups = {
-      bg = "StatusLineBg",
-      fg = "StatusLineFg",
+      active = "StatusLine",
+      inactive = "StatusLineNC",
     },
     component_fail_to_render_symbol = "X",
   },

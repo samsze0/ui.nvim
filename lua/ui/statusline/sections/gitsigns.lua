@@ -17,7 +17,7 @@ local component_config = {
   padding = " ",
 }
 
-return Statusline.Component.new(function()
+return Statusline.Component.new(function(render_mode)
   if not vim.b.gitsigns_status_dict then return "" end
   local status = vim.b.gitsigns_status_dict
 
@@ -28,7 +28,8 @@ return Statusline.Component.new(function()
   local head_ref = component_config.icons.head
     .. utils.highlight_text(
       vim.b.gitsigns_head or "-",
-      component_config.hl_groups.head
+      component_config.hl_groups.head,
+      render_mode
     )
   result = result .. head_ref
 
@@ -40,7 +41,8 @@ return Statusline.Component.new(function()
           component_config.icons.added,
           status.added
         ),
-        component_config.hl_groups.added
+        component_config.hl_groups.added,
+        render_mode
       )
   end
   if (status.changed or 0) > 0 then
@@ -51,7 +53,8 @@ return Statusline.Component.new(function()
           component_config.icons.changed,
           status.changed
         ),
-        component_config.hl_groups.changed
+        component_config.hl_groups.changed,
+        render_mode
       )
   end
   if (status.removed or 0) > 0 then
@@ -62,7 +65,8 @@ return Statusline.Component.new(function()
           component_config.icons.removed,
           status.removed
         ),
-        component_config.hl_groups.removed
+        component_config.hl_groups.removed,
+        render_mode
       )
   end
 

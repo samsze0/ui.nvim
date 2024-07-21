@@ -6,5 +6,7 @@ local component_config = {
 }
 
 return Statusline.Component.new(
-  function() return "Window: " .. tostring(vim.api.nvim_get_current_win()) end
+  function(render_mode)
+    return "Window: " .. tostring(vim.api.nvim_get_current_win())
+  end
 )

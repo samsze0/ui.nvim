@@ -13,7 +13,8 @@ M.register = function(opts)
     pattern = "*",
     desc = "Set active statusline",
     lua_callback = function(ctx)
-      vim.wo.statusline = opts.active_statusline:render()
+      vim.wo.statusline =
+        opts.active_statusline:render(Statusline.RenderMode.active)
     end,
   })
 
@@ -23,7 +24,8 @@ M.register = function(opts)
     pattern = "*",
     desc = "Set inactive statusline",
     lua_callback = function(ctx)
-      vim.wo.statusline = opts.inactive_statusline:render()
+      vim.wo.statusline =
+        opts.inactive_statusline:render(Statusline.RenderMode.inactive)
     end,
   })
 end

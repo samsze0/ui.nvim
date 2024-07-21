@@ -56,6 +56,12 @@ local default_config = {
     },
     component_fail_to_render_symbol = "X",
   },
+  tabline = {
+    margin = "",
+    padding = " ",
+    highlight_groups = {},
+    component_fail_to_render_symbol = "X",
+  },
 }
 
 ---@return UIConfig

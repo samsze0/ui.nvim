@@ -138,4 +138,6 @@ function Tabline:on_render(callback)
   self._subscribers[id] = callback
 end
 
+Tabline.Component = TablineComponent
+
 return Tabline

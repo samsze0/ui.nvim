@@ -43,7 +43,6 @@ autocommand_utils.create({
   events = { "User" },
   pattern = "GitSignsUpdate",
   lua_callback = function(ctx)
-    vim.info(ctx)
     if ctx.buf == vim.api.nvim_get_current_buf() then
       vim.wo.statusline = active_statusline:render(Statusline.RenderMode.active)
     end

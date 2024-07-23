@@ -38,7 +38,10 @@ return Tabline.Component.new(function()
   local tabs_titles = tbl_utils.map(tabs, function(i, tab)
     local is_current_tab = i == current_tab
     local current_window_in_tab = vim.fn.tabpagewinnr(tab.tabnr)
-    local win_info = vim.fn.getwininfo(current_window_in_tab)[1]
+    -- win_nr is scoped to the current tab and starts from 1
+    -- win_id is scoped to the whole vim instance and starts from 1000
+    local current_window = vim.fn.win_getid(current_window_in_tab, tab.tabnr)
+    local win_info = vim.fn.getwininfo(current_window)[1]
     local current_buffer_in_tab = win_info.bufnr
 
     local filepath = vim.fn.bufname(current_buffer_in_tab)
@@ -77,16 +80,27 @@ return Tabline.Component.new(function()
     end
 
     if component_config.show_window_count then
-      table.insert(result, ("/%d"):format(#tab.windows))
+      local wins = tbl_utils.filter(tab.windows, function(_, win)
+        local buf = vim.api.nvim_win_get_buf(win)
+        return vim.bo[buf].buflisted and vim.bo[buf].buftype == ""
+      end)
+      table.insert(result, ("/%d"):format(#wins))
     end
 
-    return component_config.margin.tab
-      .. table.concat(
-        tbl_utils.non_empty(result),
-        component_config.padding.within_tab
-      )
-      .. component_config.margin.tab
+    return table.concat(
+      tbl_utils.non_empty(result),
+      component_config.padding.within_tab
+    )
   end)
+
+  tabs_titles = tbl_utils.map(
+    tabs_titles,
+    function(i, tab_title)
+      return component_config.margin.tab
+        .. tab_title
+        .. component_config.margin.tab
+    end
+  )
 
   local apply_hl = function(i, tab_text)
     local is_current_tab = i == current_tab
@@ -106,10 +120,8 @@ return Tabline.Component.new(function()
   if required_width <= max_width then
   end
 
-  return dbg(
-    table.concat(
-      tbl_utils.map(tabs_titles, apply_hl),
-      component_config.padding.inter_tab
-    ) .. ("%%#%s#"):format(component_config.hl_groups.fill)
-  )
+  return table.concat(
+    tbl_utils.map(tabs_titles, apply_hl),
+    component_config.padding.inter_tab
+  ) .. ("%%#%s#"):format(component_config.hl_groups.fill)
 end)

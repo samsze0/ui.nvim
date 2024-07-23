@@ -4,6 +4,7 @@ local safe_require = require("utils.lang").safe_require
 local tbl_utils = require("utils.table")
 local tab_utils = require("utils.tab")
 local dbg = require("utils").debug
+local git_utils = require("utils.git")
 
 local component_config = {
   hl_groups = {
@@ -45,7 +46,12 @@ return Tabline.Component.new(function()
     local current_buffer_in_tab = win_info.bufnr
 
     local filepath = vim.fn.bufname(current_buffer_in_tab)
-    local filename = vim.fn.fnamemodify(filepath, ":~:.")
+    if vim.fn.filereadable(filepath) == 0 then
+      return component_config.indicators.unknown
+    end
+
+    local relative_filepath = vim.fn.fnamemodify(filepath, ":~:.")
+
     local modified = vim.bo[current_buffer_in_tab].modified
     local filetype = vim.bo[current_buffer_in_tab].filetype
     local buftype = vim.bo[current_buffer_in_tab].buftype
@@ -70,7 +76,7 @@ return Tabline.Component.new(function()
       or nil
     if fileicon then table.insert(result, fileicon) end
 
-    table.insert(result, filename)
+    table.insert(result, relative_filepath)
 
     if modified then
       table.insert(result, component_config.indicators.modified)

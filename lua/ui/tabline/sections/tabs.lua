@@ -32,6 +32,8 @@ local component_config = {
 
 local devicons = safe_require("nvim-web-devicons")
 
+-- FIX: intertab padding issues
+
 return Tabline.Component.new(function()
   local tabs = tab_utils.get_tabs_info()
   local current_tab = vim.fn.tabpagenr()

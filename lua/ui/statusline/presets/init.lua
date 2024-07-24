@@ -49,6 +49,15 @@ autocommand_utils.create({
   end,
 })
 
+autocommand_utils.create({
+  events = { "BufModifiedSet" },
+  lua_callback = function(ctx)
+    if ctx.buf == vim.api.nvim_get_current_buf() then
+      vim.wo.statusline = active_statusline:render(Statusline.RenderMode.active)
+    end
+  end,
+})
+
 return {
   active_statusline = active_statusline,
   inactive_statusline = inactive_statusline,

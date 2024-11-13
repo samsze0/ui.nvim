@@ -4,13 +4,14 @@ local fileinfo = require("ui.statusline.sections.fileinfo")
 local gitsigns = require("ui.statusline.sections.gitsigns")
 local copilot = require("ui.statusline.sections.copilot")
 local diagnostics = require("ui.statusline.sections.diagnostics")
-local autocommand_utils = require("utils.autocommand")
+local file_progress = require("ui.statusline.sections.file-progress")
 
 local active_statusline = Statusline.new({
   sections = {
     left = {
       filename,
       diagnostics,
+      file_progress
     },
     right = {
       copilot,
@@ -29,33 +30,6 @@ local inactive_statusline = Statusline.new({
       fileinfo,
     },
   },
-})
-
--- TODO: avoid re-rendering the same statusline
-
-vim.diagnostic.handlers["ui.nvim"] = {
-  show = function(namespace, bufnr, diagnostics, opts)
-    vim.wo.statusline = active_statusline:render(Statusline.RenderMode.active)
-  end,
-}
-
-autocommand_utils.create({
-  events = { "User" },
-  pattern = "GitSignsUpdate",
-  lua_callback = function(ctx)
-    if ctx.buf == vim.api.nvim_get_current_buf() then
-      vim.wo.statusline = active_statusline:render(Statusline.RenderMode.active)
-    end
-  end,
-})
-
-autocommand_utils.create({
-  events = { "BufModifiedSet" },
-  lua_callback = function(ctx)
-    if ctx.buf == vim.api.nvim_get_current_buf() then
-      vim.wo.statusline = active_statusline:render(Statusline.RenderMode.active)
-    end
-  end,
 })
 
 return {

@@ -130,8 +130,6 @@ function Tabline:render()
   return output
 end
 
-function Tabline:clear() self._components = {} end
-
 ---@param callback fun()
 function Tabline:on_render(callback)
   local id = uuid_utils.v4()

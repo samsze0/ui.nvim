@@ -13,6 +13,17 @@ M.register = function(opts)
     pattern = "*",
     desc = "Set active statusline",
     lua_callback = function(ctx)
+      for _, component in ipairs(opts.active_statusline._sections.left) do
+        for _, callback in ipairs(component._on_init) do
+          callback()
+        end
+      end
+      for _, component in ipairs(opts.active_statusline._sections.right) do
+        for _, callback in ipairs(component._on_init) do
+          callback()
+        end
+      end
+
       vim.wo.statusline =
         opts.active_statusline:render(Statusline.RenderMode.active)
     end,
@@ -24,6 +35,17 @@ M.register = function(opts)
     pattern = "*",
     desc = "Set inactive statusline",
     lua_callback = function(ctx)
+      for _, component in ipairs(opts.active_statusline._sections.left) do
+        for _, callback in ipairs(component._on_destroy) do
+          callback()
+        end
+      end
+      for _, component in ipairs(opts.active_statusline._sections.right) do
+        for _, callback in ipairs(component._on_destroy) do
+          callback()
+        end
+      end
+
       vim.wo.statusline =
         opts.inactive_statusline:render(Statusline.RenderMode.inactive)
     end,

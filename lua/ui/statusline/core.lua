@@ -24,6 +24,10 @@ local RenderMode = {
 ---@class Statusline.component
 ---@field _render_fn Statusline.component.render_fn
 ---@field _critical_error boolean
+---@field _render_cache table<number, string>
+---@field _on_init fun()[]
+---@field _on_destroy fun()[]
+---@field _invalidate_callbacks fun(mode: Statusline.render_mode)[]
 local StatuslineComponent = oop_utils.new_class()
 
 ---@param render_fn Statusline.component.render_fn
@@ -32,6 +36,9 @@ local StatuslineComponent = oop_utils.new_class()
 function StatuslineComponent.new(render_fn, opts)
   local obj = {
     _critical_error = false,
+    _render_cache = {},
+    _on_init = {},
+    _on_destroy = {},
   }
   setmetatable(obj, StatuslineComponent)
   ---@cast obj Statusline.component
@@ -52,6 +59,8 @@ function StatuslineComponent.new(render_fn, opts)
     if not ok then output = config.component_fail_to_render_symbol end
     ---@cast output -nil
 
+    obj._render_cache[vim.api.nvim_get_current_win()] = output
+
     return output
   end
 
@@ -61,6 +70,29 @@ end
 ---@param mode Statusline.render_mode
 ---@return string
 function StatuslineComponent:render(mode) return self._render_fn(mode) end
+
+-- Invalidate the statusline component by clearing its render cache
+function StatuslineComponent:invalidate(mode)
+  self._render_cache[vim.api.nvim_get_current_win() .. "." .. mode] = nil
+  for _, callback in ipairs(self._invalidate_callbacks) do
+    callback(mode)
+  end
+end
+
+---@param callback fun(mode: Statusline.render_mode)
+function StatuslineComponent:on_invalidate(callback)
+  table.insert(self._invalidate_callbacks, callback)
+end
+
+---@param callback fun()
+function StatuslineComponent:on_init(callback)
+  table.insert(self._on_init, callback)
+end
+
+---@param callback fun()
+function StatuslineComponent:on_destroy(callback)
+  table.insert(self._on_destroy, callback)
+end
 
 ---@enum Statusline.section
 local Section = {
@@ -108,12 +140,14 @@ end
 ---@param component Statusline.component
 function Statusline:prepend(section, component)
   table.insert(self._sections[section], 1, component)
+  component:on_invalidate(function(mode) self:render(mode) end)
 end
 
 ---@param section Statusline.section
 ---@param component Statusline.component
 function Statusline:append(section, component)
   table.insert(self._sections[section], component)
+  component:on_invalidate(function(mode) self:render(mode) end)
 end
 
 ---@param section Statusline.section
@@ -125,13 +159,20 @@ function Statusline:add(section, component, order) error("Not implemented") end
 function Statusline:render(mode)
   if self._critical_error then return end
 
+  local win_id = vim.api.nvim_get_current_win()
+
   local ok, output = xpcall(function()
     local left = config.margin
       .. table.concat(
         tbl_utils.filter(
           tbl_utils.map(
             self._sections.left,
-            function(_, component) return component:render(mode) end
+            function(_, component)
+              if not component._render_cache[win_id .. "." .. mode] then
+                return component:render(mode)
+              end
+              return component._render_cache[win_id .. "." .. mode]
+            end
           ),
           function(_, output) return output ~= nil and #output > 0 end
         ),
@@ -143,7 +184,12 @@ function Statusline:render(mode)
         tbl_utils.filter(
           tbl_utils.map(
             self._sections.right,
-            function(_, component) return component:render(mode) end
+            function(_, component)
+              if not component._render_cache[win_id .. "." .. mode] then
+                return component:render(mode)
+              end
+              return component._render_cache[win_id .. "." .. mode]
+            end
           ),
           function(_, output) return output ~= nil and #output > 0 end
         ),
@@ -177,13 +223,6 @@ function Statusline:render(mode)
 
   if not ok then return end
   return output
-end
-
-function Statusline:clear()
-  self._sections = {
-    left = {},
-    right = {},
-  }
 end
 
 ---@param callback fun()

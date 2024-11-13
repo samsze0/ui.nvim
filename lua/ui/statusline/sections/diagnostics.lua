@@ -1,5 +1,6 @@
 local Statusline = require("ui.statusline.core")
 local utils = require("ui.statusline.utils")
+local uuid_utils = require("utils.uuid")
 
 local component_config = {
   levels = {
@@ -25,7 +26,7 @@ local component_config = {
 
 ---@type vim.lsp.get_clients.Filter
 
-return Statusline.Component.new(function(render_mode)
+local comp = Statusline.Component.new(function(render_mode)
   ---@type vim.lsp.get_clients.Filter
   local filter = { bufnr = 0 }
   local has_attached_client = next(vim.lsp.get_clients(filter)) ~= nil
@@ -58,3 +59,20 @@ return Statusline.Component.new(function(render_mode)
 
   return table.concat(result, component_config.padding)
 end)
+
+comp:on_init(function()
+  local id = uuid_utils.v4()
+
+  vim.diagnostic.handlers["ui.nvim." .. id] = {
+    show = function(namespace, bufnr, diagnostics, opts)
+      comp:invalidate(Statusline.RenderMode.active)
+      comp:invalidate(Statusline.RenderMode.inactive)
+    end,
+  }
+
+  comp:on_destroy(function()
+    vim.diagnostic.handlers["ui.nvim." .. id] = nil
+  end)
+end)
+
+return comp

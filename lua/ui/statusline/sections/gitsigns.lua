@@ -1,5 +1,6 @@
 local Statusline = require("ui.statusline.core")
 local utils = require("ui.statusline.utils")
+local autocommand_utils = require("utils.autocommand")
 
 local component_config = {
   hl_groups = {
@@ -17,7 +18,7 @@ local component_config = {
   padding = " ",
 }
 
-return Statusline.Component.new(function(render_mode)
+local comp = Statusline.Component.new(function(render_mode)
   if not vim.b.gitsigns_status_dict then return "" end
   local status = vim.b.gitsigns_status_dict
 
@@ -72,3 +73,22 @@ return Statusline.Component.new(function(render_mode)
 
   return result
 end)
+
+comp:on_init(function()
+  local id = autocommand_utils.create({
+    events = { "User" },
+    pattern = "GitSignsUpdate",
+    lua_callback = function(ctx)
+      if ctx.buf == vim.api.nvim_get_current_buf() then
+        comp:invalidate(Statusline.RenderMode.active)
+        comp:invalidate(Statusline.RenderMode.inactive)
+      end
+    end,
+  })
+
+  comp:on_destroy(function()
+    autocommand_utils.delete(id)
+  end)
+end)
+
+return comp
